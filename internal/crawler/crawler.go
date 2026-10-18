@@ -16,6 +16,7 @@ type Result struct {
 	Links []string
 	Err   error
 	Took  time.Duration
+	Depth int
 }
 
 type Crawler struct {

@@ -13,6 +13,7 @@ import (
 	"siteprobe/internal/crawler"
 	"siteprobe/internal/fetcher"
 	"siteprobe/internal/parser"
+	"siteprobe/internal/queue"
 )
 
 const requestTimeout = 10 * time.Second
@@ -41,6 +42,13 @@ func Run() error {
 			c,
 			cfg.URL,
 			cfg.Workers,
+		)
+	} else if cfg.MaxDepth > 1 {
+		results = queue.RunQueued(
+			ctx,
+			cfg.URL,
+			c,
+			cfg.MaxDepth,
 		)
 	} else {
 		results = runSequential(

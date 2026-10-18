@@ -36,6 +36,10 @@ func LoadConfig() (*Config, error) {
 	}
 	cfg.URL = urlArr
 
+	if cfg.MaxDepth <= 0 {
+		return nil, errors.New("MaxDepth can not be less then 0")
+	}
+
 	if cfg.Workers < 1 {
 		return nil, errors.New("worker can not be less then 0")
 	}
