@@ -24,7 +24,7 @@ func LoadConfig() (*Config, error) {
 
 	flag.StringVar(&urlValues, "url", "", "Crawling url")
 	flag.IntVar(&cfg.Workers, "workers", 1, "Flag definites how many workers will connect and search in website")
-	flag.IntVar(&cfg.MaxDepth, "max-depth", 1, "Flag definites how deep worker can enter int to website definie by links")
+	flag.IntVar(&cfg.MaxDepth, "max-depth", 0, "Flag definites how deep worker can enter int to website definie by links")
 	flag.IntVar(&cfg.Rate, "rate", 1, "Flag define rate")
 	flag.StringVar(&cfg.UserAgent, "user-agent", "Crawler-Agent/default", "Flag defines custom user agnet")
 	flag.BoolVar(&cfg.Show, "show", false, "Show collected links form url/urls")
@@ -36,12 +36,12 @@ func LoadConfig() (*Config, error) {
 	}
 	cfg.URL = urlArr
 
-	if cfg.MaxDepth <= 0 {
-		return nil, errors.New("MaxDepth can not be less then 0")
+	if cfg.MaxDepth < 0 {
+		return nil, errors.New("max-depth can not be less than 0")
 	}
 
 	if cfg.Workers < 1 {
-		return nil, errors.New("worker can not be less then 0")
+		return nil, errors.New("workers can not be less than 1")
 	}
 
 	return &cfg, nil

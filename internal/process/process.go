@@ -13,7 +13,6 @@ import (
 	"siteprobe/internal/crawler"
 	"siteprobe/internal/fetcher"
 	"siteprobe/internal/parser"
-	"siteprobe/internal/queue"
 )
 
 const requestTimeout = 10 * time.Second
@@ -37,43 +36,33 @@ func Run() error {
 	var results <-chan crawler.Result
 
 	if cfg.Workers > 1 {
-		results = runConcurrent(
-			ctx,
-			c,
-			cfg.URL,
-			cfg.Workers,
-		)
-	} else if cfg.MaxDepth > 1 {
-		results = queue.RunQueued(
-			ctx,
-			cfg.URL,
-			c,
-			cfg.MaxDepth,
-		)
+		results = runConcurrent(ctx, c, cfg)
 	} else {
-		results = runSequential(
-			ctx,
-			c,
-			cfg.URL,
-		)
+		results = runSequential(ctx, c, cfg)
 	}
 
-	failed := report(results, cfg.Show)
-	done := len(cfg.URL) - failed
+	processed, failed := report(results, cfg.Show)
 
-	fmt.Printf("done: %d urls, %d failed, %d workers, %s\n",
-		done, failed, max(cfg.Workers, 1), time.Since(start).Round(time.Millisecond))
+	total := fmt.Sprint(processed)
+	if cfg.MaxDepth == 0 {
+		total = fmt.Sprintf("%d of %d", processed, len(cfg.URL))
+	}
+
+	fmt.Printf("done: %s urls, %d failed, %d workers, %s\n",
+		total, failed, max(cfg.Workers, 1), time.Since(start).Round(time.Millisecond))
 	return nil
 }
 
-func report(results <-chan crawler.Result, show bool) (failed int) {
+func report(results <-chan crawler.Result, show bool) (processed, failed int) {
 	for res := range results {
+		processed++
+
 		if res.Err != nil {
-			fmt.Printf("FAIL %s (%s): %v\n", res.URL, res.Took.Round(time.Millisecond), res.Err)
+			fmt.Printf("FAIL [d%d] %s (%s): %v\n", res.Depth, res.URL, res.Took.Round(time.Millisecond), res.Err)
 			failed++
 			continue
 		}
-		fmt.Printf("OK %s (%s): %d links\n", res.URL, res.Took.Round(time.Millisecond), len(res.Links))
+		fmt.Printf("OK [d%d] %s (%s): %d links\n", res.Depth, res.URL, res.Took.Round(time.Millisecond), len(res.Links))
 
 		if show {
 			for _, link := range res.Links {
@@ -82,5 +71,5 @@ func report(results <-chan crawler.Result, show bool) (failed int) {
 		}
 	}
 
-	return failed
+	return processed, failed
 }

@@ -1,4 +1,4 @@
-README.md
+/siteprobe
 
 # Build artifacts
 bin/
@@ -19,3 +19,5 @@ build/
 .idea/
 .vscode/
 .zed/
+
+README.md
