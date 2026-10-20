@@ -13,8 +13,7 @@ func runConcurrent(
 	c *crawler.Crawler,
 	cfg *config.Config,
 ) <-chan crawler.Result {
-	var workers int
-
+	workers := cfg.Workers
 	if cfg.MaxDepth == 0 {
 		workers = min(cfg.Workers, len(cfg.URL))
 	}
