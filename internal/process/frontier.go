@@ -80,5 +80,5 @@ func normalizeURL(rawURL string) (string, error) {
 		return "", errors.New("URL do not have a host")
 	}
 
-	return parsedURL.String(), nil
+	return strings.ToLower(parsedURL.String()), nil
 }
