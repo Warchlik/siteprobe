@@ -1,6 +1,12 @@
 package process
 
-import "siteprobe/internal/crawler"
+import (
+	"errors"
+	"net/url"
+	"strings"
+
+	"siteprobe/internal/crawler"
+)
 
 type job struct {
 	URL   string
@@ -19,7 +25,11 @@ func newFrontier(startURLs []string) *frontier {
 	}
 
 	for _, u := range startURLs {
-		f.seen[u] = struct{}{}
+		link, err := url.Parse(u)
+		if err != nil {
+			return nil
+		}
+		f.seen[link.String()] = struct{}{}
 		f.queue = append(f.queue, job{URL: u})
 	}
 
@@ -32,11 +42,16 @@ func (f *frontier) expand(res crawler.Result, maxDepth int) {
 	}
 
 	for _, link := range res.Links {
-		if _, isSeen := f.seen[link]; isSeen {
+		linkNorm, err := normalizeURL(link)
+		if err != nil {
 			continue
 		}
 
-		f.seen[link] = struct{}{}
+		if _, isSeen := f.seen[linkNorm]; isSeen {
+			continue
+		}
+
+		f.seen[linkNorm] = struct{}{}
 		f.queue = append(f.queue, job{URL: link, Depth: res.Depth + 1})
 	}
 }
@@ -53,4 +68,17 @@ func (f *frontier) pop() job {
 	j := f.queue[0]
 	f.queue = f.queue[1:]
 	return j
+}
+
+func normalizeURL(rawURL string) (string, error) {
+	parsedURL, err := url.Parse(strings.ToLower(rawURL))
+	if err != nil {
+		return "", err
+	}
+
+	if parsedURL.Host == "" {
+		return "", errors.New("URL do not have a host")
+	}
+
+	return parsedURL.String(), nil
 }

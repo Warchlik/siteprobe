@@ -37,6 +37,11 @@ func NewHTMLParser() *HTMLParser {
 			".css",
 			".js",
 			".ico",
+			".doc",
+			".docx",
+			".xlsx",
+			".xls",
+			".wasm",
 		},
 	}
 }

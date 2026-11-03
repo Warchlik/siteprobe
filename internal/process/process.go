@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"siteprobe/internal/config"
@@ -23,7 +24,7 @@ func Run() error {
 		return err
 	}
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	c := crawler.NewCrawler(
@@ -50,6 +51,7 @@ func Run() error {
 
 	fmt.Printf("done: %s urls, %d failed, %d workers, %s\n",
 		total, failed, max(cfg.Workers, 1), time.Since(start).Round(time.Millisecond))
+
 	return nil
 }
 
